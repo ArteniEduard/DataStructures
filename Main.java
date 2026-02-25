@@ -1,20 +1,3 @@
-class Node{
-    Node next;
-    int value;
-    public Node(int value){
-        this.next = null;
-        this.value = value;
-    }
-}
-class LinkedList{
-    Node head;
-
-    public LinkedList(int value){
-        this.head = new Node(value);
-    }
-
-}
-
 class Vector{
     private int size =0;
     private int[] data = new int[5];
