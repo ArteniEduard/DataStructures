@@ -1,6 +1,10 @@
 package Lab4;
 
+import java.util.ArrayList;
+import java.util.List;
+
 class Node {
+    private static int deserializationIndex = 0;
     int data;
     Node parent;
     Node left;
@@ -10,6 +14,45 @@ class Node {
         this.data = data;
         this.left = null;
         this.right = null;
+    }
+
+    public void deserialize(List<Integer> serialization) {
+        if (deserializationIndex == serialization.size()) {
+            return;
+        } else if (serialization.get(deserializationIndex) == null) {
+            deserializationIndex++;
+            return;
+        }
+        this.data = serialization.get(deserializationIndex++);
+
+        if (serialization.get(deserializationIndex) != null) {
+            this.left = new Node(serialization.get(deserializationIndex));
+            this.left.deserialize(serialization);
+        } else {
+            this.left = null;
+            deserializationIndex++;
+        }
+
+        if (serialization.get(deserializationIndex) != null) {
+            this.right = new Node(serialization.get(deserializationIndex));
+            this.right.deserialize(serialization);
+        } else {
+            this.right = null;
+            deserializationIndex++;
+        }
+
+    }
+
+    public void serialize(ArrayList<Integer> result) {
+        result.add(data);
+        if (left != null) left.serialize(result);
+        else result.add(null);
+        if (right != null) right.serialize(result);
+        else result.add(null);
+    }
+
+    public void resetDeserialization() {
+        deserializationIndex = 0;
     }
 
     public Node find(int data) {
@@ -27,6 +70,45 @@ class Node {
             } else {
                 return null;
             }
+        }
+    }
+
+    public boolean validate() {
+        if (isLeaf()) {
+            return true;
+        } else {
+            boolean result = true;
+            if (left != null) {
+                if (this.data < left.data) {
+                    return false;
+                } else {
+                    result = result && left.validate();
+                }
+            }
+            if (right != null) {
+                if (this.data > right.data) {
+                    return false;
+                } else {
+                    result = result && right.validate();
+                }
+            }
+            return result;
+        }
+    }
+
+    public Node successor() {
+        if (this.right == null) {
+            Node current = this;
+            Node p = this.parent;
+
+            while (p != null && p.right == current) {
+                current = p;
+                p = p.parent;
+            }
+
+            return p;
+        } else {
+            return this.inOrderSuccessor();
         }
     }
 
@@ -66,10 +148,26 @@ class Node {
         }
         return left;
     }
+
+    public Node leftMost() {
+        if (this.left == null) {
+            return this;
+        } else {
+            return this.left.leftMost();
+        }
+    }
+
+    public Node inOrderSuccessor() {
+        if (this.right == null) {
+            return null;
+        } else {
+            return right.leftMost();
+        }
+    }
 }
 
 class BST {
-    private Node root;
+    public Node root;
 
     public BST() {
         this.root = null;
@@ -77,6 +175,18 @@ class BST {
 
     public BST(int data) {
         this.root = new Node(data);
+    }
+
+    public BST(List<Integer> serialization) {
+        this.root = new Node(serialization.get(0));
+        this.root.resetDeserialization();
+        this.root.deserialize(serialization);
+    }
+
+    public ArrayList<Integer> serialize() {
+        ArrayList<Integer> result = new ArrayList<>();
+        root.serialize(result);
+        return result;
     }
 
     public void insert(int data) {
@@ -92,7 +202,9 @@ class BST {
         Node nodeToErase = find(data);
         if (nodeToErase != null) {
             if (nodeToErase.isFull()) {
-
+                Node succesor = nodeToErase.inOrderSuccessor();
+                nodeToErase.data = succesor.data;
+//                succesor.parent.
             } else {
                 if (nodeToErase.isRoot()) {
                     this.root = null;
@@ -134,7 +246,12 @@ public class BinarySearchTree {
     static void main() {
         BST b = new BST();
         b.insert(10);
-        System.out.println(b.find(101));
+        b.insert(5);
+        b.insert(15);
+        List<Integer> serialization = b.serialize();
+        System.out.println(serialization);
+        BST c = new BST(serialization);
+        System.out.println(c.serialize());
     }
 
 }
